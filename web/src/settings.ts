@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AudioLanguage, OutputLanguage, SummaryLength, SummaryStyle } from './types';
+import type { AudioLanguage, OutputLanguage, SummaryLength, SummaryStyle, TranscriptLanguage } from './types';
 
 // Client-side user preferences (the web equivalent of the mac app's
 // UserDefaults-backed SettingsStore). Persisted in localStorage.
@@ -7,6 +7,7 @@ import type { AudioLanguage, OutputLanguage, SummaryLength, SummaryStyle } from 
 export interface Settings {
   audioLanguage: AudioLanguage;
   outputLanguage: OutputLanguage;
+  transcriptLanguage: TranscriptLanguage;
   summaryStyle: SummaryStyle;
   summaryLength: SummaryLength;
   quizCount: number;
@@ -17,6 +18,7 @@ const KEY = 'transcriber.settings';
 const DEFAULTS: Settings = {
   audioLanguage: 'auto',
   outputLanguage: 'zh-HK',
+  transcriptLanguage: 'original',
   summaryStyle: 'lesson',
   summaryLength: 'standard',
   quizCount: 10,

@@ -765,6 +765,26 @@ select:focus {
   flex-shrink: 0;
 }
 
+.md-table {
+  border-collapse: collapse;
+  margin: 10px 0;
+  width: 100%;
+  font-size: 13px;
+}
+
+.md-table th,
+.md-table td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.md-table th {
+  background: var(--selected);
+  font-weight: 600;
+}
+
 /* ---------------------------------------------------------------------------
    Quiz
    --------------------------------------------------------------------------- */

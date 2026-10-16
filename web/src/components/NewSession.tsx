@@ -1,18 +1,19 @@
 import { useRef, useState } from 'react';
 import * as api from '../api';
 import { Icon } from '../icons';
-import type { AudioLanguage, Job, OutputLanguage, Session } from '../types';
-import { AUDIO_LANGUAGES, OUTPUT_LANGUAGES } from '../types';
+import type { AudioLanguage, Job, OutputLanguage, Session, TranscriptLanguage } from '../types';
+import { AUDIO_LANGUAGES, OUTPUT_LANGUAGES, TRANSCRIPT_LANGUAGES } from '../types';
 import { ErrorBanner, RowCard, SectionLabel, SettingRow } from './ui';
 
 interface Props {
-  settings: { audioLanguage: AudioLanguage; outputLanguage: OutputLanguage };
-  onCreated: (session: Session, job: Job) => void;
+  settings: { audioLanguage: AudioLanguage; outputLanguage: OutputLanguage; transcriptLanguage: TranscriptLanguage };
+  onCreated: (session: Session, job: Job, blobUrl: string) => void;
 }
 
 export default function NewSession({ settings, onCreated }: Props) {
   const [audioLanguage, setAudioLanguage] = useState<AudioLanguage>(settings.audioLanguage);
   const [outputLanguage, setOutputLanguage] = useState<OutputLanguage>(settings.outputLanguage);
+  const [transcriptLanguage, setTranscriptLanguage] = useState<TranscriptLanguage>(settings.transcriptLanguage);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,8 +23,8 @@ export default function NewSession({ settings, onCreated }: Props) {
     setUploading(true);
     setError(null);
     try {
-      const { session, job } = await api.createSession(file, audioLanguage, outputLanguage);
-      onCreated(session, job);
+      const { session, job } = await api.createSession(file, audioLanguage, outputLanguage, transcriptLanguage);
+      onCreated(session, job, URL.createObjectURL(file));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setUploading(false);
@@ -100,6 +101,21 @@ export default function NewSession({ settings, onCreated }: Props) {
             onChange={(e) => setOutputLanguage(e.target.value as OutputLanguage)}
           >
             {OUTPUT_LANGUAGES.map((lang) => (
+              <option key={lang.value} value={lang.value}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </SettingRow>
+        <SettingRow
+          title="Transcript language"
+          sub="Language the transcript is shown in — original, or translated (both are kept)"
+        >
+          <select
+            value={transcriptLanguage}
+            onChange={(e) => setTranscriptLanguage(e.target.value as TranscriptLanguage)}
+          >
+            {TRANSCRIPT_LANGUAGES.map((lang) => (
               <option key={lang.value} value={lang.value}>
                 {lang.label}
               </option>

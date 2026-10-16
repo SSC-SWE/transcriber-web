@@ -32,10 +32,19 @@ import {
   transcriptText,
   updateJob,
 } from './store';
-import type { Job, OutputLanguage, Session, SummaryLength, SummaryStyle } from './types';
+import type { Job, OutputLanguage, Session, SummaryLength, SummaryStyle, TranscriptLanguage } from './types';
 
 ensureDataDirs();
 loadAll();
+// Audio is never stored — clear any uploads left behind by a previous run
+// (e.g. a process that was killed mid-transcription).
+for (const file of fs.readdirSync(config.uploadsDir)) {
+  try {
+    fs.rmSync(path.join(config.uploadsDir, file), { force: true });
+  } catch {
+    // ignore
+  }
+}
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
@@ -67,9 +76,24 @@ function audioFormatFor(filename: string): string {
 }
 
 async function runTranscription(session: Session, job: Job): Promise<void> {
+  const file = audioPath(session);
+  let data: Buffer;
+  try {
+    data = fs.readFileSync(file);
+  } catch {
+    updateJob(job.id, { stage: 'Failed', error: 'The uploaded audio is no longer available — re-upload.', done: true });
+    return;
+  } finally {
+    // Audio is transient: it exists only long enough to be transcribed, never
+    // stored. Delete it the moment it has been read into memory.
+    try {
+      fs.rmSync(file, { force: true });
+    } catch {
+      // already gone
+    }
+  }
   try {
     updateJob(job.id, { stage: 'Transcribing…', progress: null });
-    const data = fs.readFileSync(audioPath(session));
     const result = await openrouter.transcribe(
       data,
       audioFormatFor(session.audioFile),
@@ -80,6 +104,14 @@ async function runTranscription(session: Session, job: Job): Promise<void> {
       segments = segments.map((s) => ({ ...s, text: s2t(s.text) }));
     }
     session.segments = segments;
+    session.segmentsTranslated = null;
+    if (session.transcriptLanguage !== 'original') {
+      updateJob(job.id, { stage: 'Translating…', progress: null });
+      session.segmentsTranslated = await openrouter.translateSegments(
+        segments,
+        session.transcriptLanguage,
+      );
+    }
     saveSession(session);
     updateJob(job.id, { stage: 'Done', progress: 100, done: true });
   } catch (err: any) {
@@ -174,11 +206,13 @@ app.post('/api/sessions', upload.single('file'), (req, res) => {
   }
   const audioLanguage = (req.body.audioLanguage as Session['audioLanguage']) || 'auto';
   const outputLanguage = (req.body.outputLanguage as OutputLanguage) || 'zh-HK';
+  const transcriptLanguage = (req.body.transcriptLanguage as TranscriptLanguage) || 'original';
 
   const session = createSession({
     filename: originalName,
     audioLanguage,
     outputLanguage,
+    transcriptLanguage,
     audioFile: '', // set below after the id exists
   });
   const finalName = `${session.id}.${ext}`;
@@ -270,17 +304,6 @@ app.get('/api/jobs/:id', (req, res) => {
     return;
   }
   res.json({ job: jobJson(job) });
-});
-
-app.get('/api/sessions/:id/audio', (req, res) => {
-  const session = getSession(req.params.id);
-  if (!session) {
-    res.status(404).json({ error: 'Session not found.' });
-    return;
-  }
-  res.sendFile(audioPath(session), (err) => {
-    if (err && !res.headersSent) res.status(404).json({ error: 'Audio file missing.' });
-  });
 });
 
 app.get('/api/sessions/:id/export/:kind', async (req, res) => {

@@ -13,6 +13,7 @@ import type {
   OutputLanguage,
   Session,
   SessionSummary,
+  TranscriptLanguage,
   TranscriptSegment,
 } from './types';
 
@@ -67,7 +68,11 @@ export function loadAll(): void {
     if (!file.endsWith('.json')) continue;
     try {
       const parsed = JSON.parse(fs.readFileSync(path.join(config.sessionsDir, file), 'utf8')) as Session;
-      sessions.set(parsed.id, parsed);
+      sessions.set(parsed.id, {
+        ...parsed,
+        transcriptLanguage: parsed.transcriptLanguage ?? 'original',
+        segmentsTranslated: parsed.segmentsTranslated ?? null,
+      });
     } catch {
       // Skip corrupt files rather than crash on startup.
     }
@@ -96,6 +101,7 @@ export function createSession(params: {
   filename: string;
   audioLanguage: Session['audioLanguage'];
   outputLanguage: OutputLanguage;
+  transcriptLanguage: TranscriptLanguage;
   audioFile: string;
 }): Session {
   const session: Session = {
@@ -106,6 +112,8 @@ export function createSession(params: {
     outputLanguage: params.outputLanguage,
     audioFile: params.audioFile,
     segments: [],
+    transcriptLanguage: params.transcriptLanguage,
+    segmentsTranslated: null,
     summaryMarkdown: null,
     quiz: null,
   };

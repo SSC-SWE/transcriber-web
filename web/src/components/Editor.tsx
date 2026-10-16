@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { audioUrl } from '../api';
 import { formatTimestamp } from '../format';
 import { Icon } from '../icons';
 import type { TranscriptSegment } from '../types';
@@ -7,13 +6,19 @@ import type { TranscriptSegment } from '../types';
 // The Plaud/Label-Studio-style editor: audio player + waveform on the left,
 // timestamped transcript on the right, two-way synced. Clicking a line seeks
 // the audio; clicking the waveform seeks too; the active line follows playback.
+//
+// The audio is played from the file the user dropped, held in the browser's
+// memory (a blob URL). The server never stores audio — it only holds the bytes
+// long enough to transcribe them — so once the tab is closed or reloaded there
+// is nothing left to play and the editor degrades to transcript-only.
 
 interface Props {
-  sessionId: string;
+  /** Blob URL of the uploaded file (present only during the current tab session). */
+  src?: string;
   segments: TranscriptSegment[];
 }
 
-export default function Editor({ sessionId, segments }: Props) {
+export default function Editor({ src, segments }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -24,10 +29,15 @@ export default function Editor({ sessionId, segments }: Props) {
   const [peaks, setPeaks] = useState<number[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
 
-  const src = audioUrl(sessionId);
-
   // Decode the audio to compute waveform peaks + duration.
   useEffect(() => {
+    if (!src) {
+      setPeaks([]);
+      setDuration(0);
+      setCurrentTime(0);
+      setPlaying(false);
+      return;
+    }
     let cancelled = false;
     let ctx: AudioContext | null = null;
     setPeaks([]);
@@ -170,6 +180,7 @@ export default function Editor({ sessionId, segments }: Props) {
 
   // Keyboard shortcuts: Space play/pause, ↑/↓ previous/next line.
   useEffect(() => {
+    if (!src) return;
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
@@ -196,7 +207,39 @@ export default function Editor({ sessionId, segments }: Props) {
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [togglePlay, jumpTo, segments.length]);
+  }, [src, togglePlay, jumpTo, segments.length]);
+
+  const transcript = segments.length === 0 ? (
+    <div className="empty-state">No transcript yet.</div>
+  ) : (
+    segments.map((seg, i) => (
+      <div
+        key={`${seg.start}-${i}`}
+        ref={(el) => {
+          rowRefs.current[i] = el;
+        }}
+        className={`segment ${i === activeIndex ? 'active' : ''}`}
+        onClick={() => jumpTo(i)}
+      >
+        <span className="segment-time">{formatTimestamp(seg.start)}</span>
+        <span className="segment-text">{seg.text}</span>
+      </div>
+    ))
+  );
+
+  if (!src) {
+    return (
+      <div>
+        {segments.length > 0 && (
+          <p className="hint" style={{ margin: '0 0 10px' }}>
+            Audio is used for transcription only and isn’t kept — the player is available only
+            while the original file is still in this tab.
+          </p>
+        )}
+        <div className="transcript">{transcript}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="editor">
@@ -227,25 +270,7 @@ export default function Editor({ sessionId, segments }: Props) {
         </div>
       </div>
 
-      <div className="transcript">
-        {segments.length === 0 ? (
-          <div className="empty-state">No transcript yet.</div>
-        ) : (
-          segments.map((seg, i) => (
-            <div
-              key={`${seg.start}-${i}`}
-              ref={(el) => {
-                rowRefs.current[i] = el;
-              }}
-              className={`segment ${i === activeIndex ? 'active' : ''}`}
-              onClick={() => jumpTo(i)}
-            >
-              <span className="segment-time">{formatTimestamp(seg.start)}</span>
-              <span className="segment-text">{seg.text}</span>
-            </div>
-          ))
-        )}
-      </div>
+      <div className="transcript">{transcript}</div>
     </div>
   );
 }

@@ -25,6 +25,9 @@ export function printHtml(title: string, bodyHtml: string): void {
   ul { margin: 6px 0; padding-left: 20px; }
   li { margin: 3px 0; }
   code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; background: #f0f0f0; border-radius: 4px; padding: 1px 5px; }
+  table { border-collapse: collapse; margin: 10px 0; width: 100%; font-size: 13px; }
+  th, td { border: 1px solid #ccc; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #f2f2f2; }
   .line { margin: 3px 0; }
   .ts { font-weight: 700; }
   @media print { body { padding: 0; } }

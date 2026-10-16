@@ -11,6 +11,9 @@ export type OutputLanguage = 'zh-HK' | 'zh-CN' | 'en';
 export type SummaryStyle = 'lesson' | 'minutes';
 export type SummaryLength = 'brief' | 'standard' | 'in-depth';
 
+/** Language the transcript is shown in: the original audio, or a translation target. */
+export type TranscriptLanguage = 'original' | OutputLanguage;
+
 export interface QuizQuestion {
   question: string;
   options: string[];
@@ -34,6 +37,8 @@ export interface Session {
   outputLanguage: OutputLanguage;
   audioFile: string;
   segments: TranscriptSegment[];
+  transcriptLanguage: TranscriptLanguage;
+  segmentsTranslated: TranscriptSegment[] | null;
   summaryMarkdown: string | null;
   quiz: Quiz | null;
 }
@@ -73,6 +78,13 @@ export const AUDIO_LANGUAGES: { value: AudioLanguage; label: string }[] = [
 ];
 
 export const OUTPUT_LANGUAGES: { value: OutputLanguage; label: string }[] = [
+  { value: 'zh-HK', label: '繁體中文（香港）' },
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'en', label: 'English' },
+];
+
+export const TRANSCRIPT_LANGUAGES: { value: TranscriptLanguage; label: string }[] = [
+  { value: 'original', label: 'Original (no translation)' },
   { value: 'zh-HK', label: '繁體中文（香港）' },
   { value: 'zh-CN', label: '简体中文' },
   { value: 'en', label: 'English' },

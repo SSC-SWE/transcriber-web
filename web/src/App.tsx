@@ -14,6 +14,7 @@ export default function App() {
   const [health, setHealth] = useState<Health | null>(null);
   const [search, setSearch] = useState('');
   const [pendingJob, setPendingJob] = useState<{ sessionId: string; job: Job } | null>(null);
+  const [audioBlobs, setAudioBlobs] = useState<Record<string, string>>({});
   const { settings, update } = useSettings();
 
   const refreshSessions = useCallback(async () => {
@@ -32,8 +33,9 @@ export default function App() {
     api.getHealth().then(setHealth).catch(() => {});
   }, []);
 
-  const handleCreated = (session: Session, job: Job) => {
+  const handleCreated = (session: Session, job: Job, blobUrl: string) => {
     setPendingJob({ sessionId: session.id, job });
+    setAudioBlobs((prev) => ({ ...prev, [session.id]: blobUrl }));
     void refreshSessions();
     setView({ kind: 'session', id: session.id });
   };
@@ -77,6 +79,7 @@ export default function App() {
             key={view.id}
             id={view.id}
             initialJob={pendingJob && pendingJob.sessionId === view.id ? pendingJob.job : null}
+            audioSrc={audioBlobs[view.id]}
             settings={settings}
             googleConfigured={health?.google.configured ?? false}
             onChanged={() => void refreshSessions()}

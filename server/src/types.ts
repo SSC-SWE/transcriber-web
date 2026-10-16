@@ -13,6 +13,9 @@ export type OutputLanguage = 'zh-HK' | 'zh-CN' | 'en';
 export type SummaryStyle = 'lesson' | 'minutes';
 export type SummaryLength = 'brief' | 'standard' | 'in-depth';
 
+/** Language the transcript is shown in: the original audio, or translated. */
+export type TranscriptLanguage = 'original' | OutputLanguage;
+
 export const AUDIO_LANGUAGES: { value: AudioLanguage; label: string }[] = [
   { value: 'auto', label: 'Auto-detect' },
   { value: 'yue', label: 'Cantonese 粵語' },
@@ -48,9 +51,13 @@ export interface Session {
   createdAt: string;
   audioLanguage: AudioLanguage;
   outputLanguage: OutputLanguage;
-  /** Audio file name inside the data dir (copied in on import). */
+  /** Audio file name inside the data dir (copied in on import; deleted after transcription). */
   audioFile: string;
   segments: TranscriptSegment[];
+  /** Transcript language: the original audio, or a translation target. */
+  transcriptLanguage: TranscriptLanguage;
+  /** Translated copy of `segments` (same timestamps), when transcriptLanguage != 'original'. */
+  segmentsTranslated: TranscriptSegment[] | null;
   summaryMarkdown: string | null;
   quiz: Quiz | null;
 }

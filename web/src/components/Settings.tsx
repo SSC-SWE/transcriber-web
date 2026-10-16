@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import * as api from '../api';
 import { Icon } from '../icons';
 import type { Settings } from '../settings';
-import type { AudioLanguage, GoogleStatus, OutputLanguage } from '../types';
-import { AUDIO_LANGUAGES, OUTPUT_LANGUAGES } from '../types';
+import type { AudioLanguage, GoogleStatus, OutputLanguage, TranscriptLanguage } from '../types';
+import { AUDIO_LANGUAGES, OUTPUT_LANGUAGES, TRANSCRIPT_LANGUAGES } from '../types';
 import { RowCard, SectionLabel, Segmented, SettingRow } from './ui';
 
 interface Props {
@@ -68,6 +68,21 @@ export default function SettingsView({ settings, update }: Props) {
             onChange={(e) => update({ audioLanguage: e.target.value as AudioLanguage })}
           >
             {AUDIO_LANGUAGES.map((lang) => (
+              <option key={lang.value} value={lang.value}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </SettingRow>
+        <SettingRow
+          title="Transcript language"
+          sub="Default language for new transcripts — original, or translated (both are kept)."
+        >
+          <select
+            value={settings.transcriptLanguage}
+            onChange={(e) => update({ transcriptLanguage: e.target.value as TranscriptLanguage })}
+          >
+            {TRANSCRIPT_LANGUAGES.map((lang) => (
               <option key={lang.value} value={lang.value}>
                 {lang.label}
               </option>

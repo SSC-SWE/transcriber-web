@@ -140,21 +140,25 @@ function summarizeLesson(transcript: string, rule: string, length: SummaryLength
     case 'in-depth':
       body = 'Produce a thorough, detailed Markdown summary with these sections:\n'
         + '## Overview — 3-5 sentences on what the session covered\n'
+        + '## At a Glance — a Markdown table (| Topic | Key idea |) with 4-8 rows giving a visual overview of the session\n'
         + '## Key Points — 6-10 bullets, each with a short explanation\n'
         + '## Key Terms — every important term/vocabulary item with a clear one-to-two-line definition\n'
         + '## Examples — describe each example or worked problem and what it demonstrates\n'
         + '## Follow-ups — all homework, reminders or next steps, including any deadlines mentioned\n'
-        + 'Where the transcript shows a calculation or process, lay out its steps. '
+        + 'Where the transcript shows a calculation or process, lay out its steps (a numbered list or table is fine). '
+        + 'Use markdown tables where they make the content clearer. '
         + 'Use only facts from the transcript; never invent content.';
       break;
     default:
       body = 'Produce a Markdown summary with exactly these sections:\n'
         + '## Overview — 2-3 sentences on what the session covered\n'
+        + '## At a Glance — a Markdown table (| Topic | Key idea |) with 3-6 rows summarising the session at a glance\n'
         + '## Key Points — the main teaching points, as bullets\n'
         + '## Key Terms — important terms/vocabulary with a one-line definition each\n'
         + '## Examples — examples or worked problems that came up, briefly\n'
         + '## Follow-ups — homework, reminders or next steps, if any were mentioned '
         + '(omit the section if there were none)\n'
+        + 'Use markdown tables where they make the content clearer. '
         + 'Use only facts from the transcript; never invent content.';
   }
   return chat([{ role: 'system', content: intro + body }, { role: 'user', content: `Session transcript:\n\n${transcript}` }], 4000);
@@ -178,7 +182,7 @@ function summarizeMinutes(transcript: string, rule: string, length: SummaryLengt
         + '## Overview — 3-5 sentences on the meeting\'s purpose, scope and outcome\n'
         + '## Topics Discussed — each topic with a short account of what was said\n'
         + '## Decisions — each decision with its rationale, as bullets\n'
-        + '## Action Items — every task mentioned, with owner and deadline where stated\n'
+        + '## Action Items — a Markdown table (| Task | Owner | Deadline |) listing every action item, with each task, its owner and its deadline where stated\n'
         + '## Open Questions — items left unresolved or deferred (omit the section if none)\n'
         + 'Where the transcript shows numbers, budgets or schedules, record them exactly. '
         + 'Name participants only if the transcript identifies them. '
@@ -189,12 +193,62 @@ function summarizeMinutes(transcript: string, rule: string, length: SummaryLengt
         + '## Overview — 2-3 sentences on the meeting\'s purpose and outcome\n'
         + '## Topics Discussed — the main points raised, as bullets\n'
         + '## Decisions — what was agreed, as bullets (omit the section if none)\n'
-        + '## Action Items — task, owner and deadline where mentioned '
+        + '## Action Items — a Markdown table (| Task | Owner | Deadline |) of the action items mentioned '
         + '(omit the section if none)\n'
         + 'Name participants only if the transcript identifies them. '
         + 'Use only facts from the transcript; never invent content.';
   }
   return chat([{ role: 'system', content: intro + body }, { role: 'user', content: `Session transcript:\n\n${transcript}` }], 4000);
+}
+
+// ---------------------------------------------------------------------------
+// Transcript translation
+// ---------------------------------------------------------------------------
+
+export async function translateSegments(
+  segments: TranscriptSegment[],
+  target: OutputLanguage,
+): Promise<TranscriptSegment[]> {
+  const rule = languageRule(target);
+  const system = `You translate transcript segments. Translate each segment's text into ${rule}. `
+    + 'Keep the meaning, tone and terminology consistent. Output STRICT JSON only — no markdown '
+    + 'fences, no commentary — as an array of objects {"start": number, "end": number, "text": string}, '
+    + 'one object per input segment, in the same order, with the same start and end values and only '
+    + 'the text translated.';
+  const input = segments.map((s) => ({ start: s.start, end: s.end, text: s.text }));
+  const raw = await chat(
+    [{ role: 'system', content: system }, { role: 'user', content: JSON.stringify(input) }],
+    8000,
+  );
+  return parseTranslatedSegments(raw, segments);
+}
+
+function parseTranslatedSegments(raw: string, original: TranscriptSegment[]): TranscriptSegment[] {
+  let payload = raw;
+  const start = raw.indexOf('[');
+  const end = raw.lastIndexOf(']');
+  if (start !== -1 && end > start) payload = raw.slice(start, end + 1);
+  let items: unknown;
+  try {
+    items = JSON.parse(payload);
+  } catch {
+    throw new ApiError('The model did not return valid translation JSON. Try again.');
+  }
+  if (!Array.isArray(items)) {
+    throw new ApiError('The model did not return valid translation JSON. Try again.');
+  }
+  const arr = items as Array<Record<string, unknown>>;
+  let translated = 0;
+  // Keep the original timestamps; only trust the model for the text, matched by index.
+  const out = original.map((seg, i) => {
+    const text = typeof arr[i]?.text === 'string' ? (arr[i].text as string).trim() : '';
+    if (text) translated += 1;
+    return { start: seg.start, end: seg.end, text: text || seg.text };
+  });
+  if (translated < Math.max(1, Math.floor(original.length / 2))) {
+    throw new ApiError('The model returned too few translated segments. Try again.');
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------

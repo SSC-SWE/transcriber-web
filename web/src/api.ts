@@ -7,6 +7,7 @@ import type {
   SessionSummary,
   SummaryLength,
   SummaryStyle,
+  TranscriptLanguage,
 } from './types';
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
@@ -48,11 +49,13 @@ export function createSession(
   file: File,
   audioLanguage: AudioLanguage,
   outputLanguage: OutputLanguage,
+  transcriptLanguage: TranscriptLanguage,
 ): Promise<{ session: Session; job: Job }> {
   const form = new FormData();
   form.append('file', file);
   form.append('audioLanguage', audioLanguage);
   form.append('outputLanguage', outputLanguage);
+  form.append('transcriptLanguage', transcriptLanguage);
   return request('/api/sessions', { method: 'POST', body: form });
 }
 
@@ -99,8 +102,6 @@ export async function getJob(id: string): Promise<Job> {
   const data = await request<{ job: Job }>(`/api/jobs/${id}`);
   return data.job;
 }
-
-export const audioUrl = (id: string): string => `/api/sessions/${id}/audio`;
 
 export function exportUrl(id: string, kind: 'transcript' | 'summary', format: 'docx' | 'txt'): string {
   return `/api/sessions/${id}/export/${kind}?format=${format}`;

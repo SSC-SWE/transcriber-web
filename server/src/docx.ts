@@ -47,16 +47,78 @@ function transcriptBody(text: string, title: string): string {
 function summaryBody(text: string, title: string): string {
   const display = title || 'Session';
   const out = [heading('Title', `Session Summary — ${display}`)];
-  for (const raw of text.split('\n')) {
-    const line = raw.trim();
-    if (!line) continue;
+  const lines = text.split('\n');
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (!line) {
+      i += 1;
+      continue;
+    }
+    if (isTableRow(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1].trim())) {
+      const rows = [splitRow(line)];
+      i += 2;
+      while (i < lines.length && isTableRow(lines[i].trim())) {
+        rows.push(splitRow(lines[i].trim()));
+        i += 1;
+      }
+      out.push(tableBlock(rows));
+      continue;
+    }
     if (line.startsWith('### ')) out.push(heading('Heading2', plain(line.slice(4))));
     else if (line.startsWith('## ')) out.push(heading('Heading1', plain(line.slice(3))));
     else if (line.startsWith('# ')) out.push(heading('Heading1', plain(line.slice(2))));
     else if (line.startsWith('- ') || line.startsWith('* ')) out.push(paragraph('ListParagraph', inlineRuns(line.slice(2)), 1));
     else out.push(paragraph('Normal', inlineRuns(line)));
+    i += 1;
   }
   return out.join('');
+}
+
+// --- Markdown table support -------------------------------------------------
+
+function isTableRow(line: string): boolean {
+  return line.startsWith('|') && line.includes('|', 1);
+}
+
+function isTableSeparator(line: string): boolean {
+  return /^\|(\s*:?-+:?\s*\|)+\s*$/.test(line);
+}
+
+function splitRow(line: string): string[] {
+  return line
+    .replace(/^\s*\|/, '')
+    .replace(/\|\s*$/, '')
+    .split('|')
+    .map((cell) => cell.trim());
+}
+
+/** Minimal OOXML table — first row is the bold header. */
+function tableBlock(rows: string[][]): string {
+  const cols = rows[0]?.length ?? 1;
+  const grid = `<w:tblGrid>${Array.from({ length: cols }, () => '<w:gridCol w:w="2400"/>').join('')}</w:tblGrid>`;
+  const borders =
+    '<w:tblBorders>'
+    + '<w:top w:val="single" w:sz="4" w:color="999999"/>'
+    + '<w:left w:val="single" w:sz="4" w:color="999999"/>'
+    + '<w:bottom w:val="single" w:sz="4" w:color="999999"/>'
+    + '<w:right w:val="single" w:sz="4" w:color="999999"/>'
+    + '<w:insideH w:val="single" w:sz="4" w:color="999999"/>'
+    + '<w:insideV w:val="single" w:sz="4" w:color="999999"/>'
+    + '</w:tblBorders>';
+  const tblPr = `<w:tblPr><w:tblW w:w="0" w:type="auto"/>${borders}</w:tblPr>`;
+  const trs = rows
+    .map((row, ri) => {
+      const cells = row
+        .map((cell) => {
+          const content = ri === 0 ? [run(cell, 'bold')] : inlineRuns(cell);
+          return `<w:tc><w:tcPr><w:tcW w:w="0" w:type="auto"/></w:tcPr>${paragraph('Normal', content)}</w:tc>`;
+        })
+        .join('');
+      return `<w:tr>${cells}</w:tr>`;
+    })
+    .join('');
+  return `<w:tbl>${tblPr}${grid}${trs}</w:tbl>`;
 }
 
 /** Renders **bold** and `code` spans into runs. */
