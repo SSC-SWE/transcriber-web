@@ -1,0 +1,67 @@
+{
+  "id": "941d89b92709",
+  "filename": "Woman.mp3",
+  "createdAt": "2026-10-16T04:20:06.430Z",
+  "audioLanguage": "auto",
+  "outputLanguage": "en",
+  "audioFile": "941d89b92709.mp3",
+  "segments": [
+    {
+      "start": 0,
+      "end": 1.58,
+      "text": "Every story you love."
+    },
+    {
+      "start": 2.01,
+      "end": 6.57,
+      "text": "every invention that moves you, every idea you wish is yours."
+    },
+    {
+      "start": 7.23,
+      "end": 8.790000000000001,
+      "text": "All began as nothing."
+    },
+    {
+      "start": 9.33,
+      "end": 12.73,
+      "text": "Just the figure on the screen asking a simple question."
+    },
+    {
+      "start": 13.08,
+      "end": 13.96,
+      "text": "What did you see?"
+    }
+  ],
+  "transcriptLanguage": "zh-HK",
+  "segmentsTranslated": [
+    {
+      "start": 0,
+      "end": 1.58,
+      "text": "每個你喜愛的故事。"
+    },
+    {
+      "start": 2.01,
+      "end": 6.57,
+      "text": "每項感動你的發明，每個你希望屬於自己的意念。"
+    },
+    {
+      "start": 7.23,
+      "end": 8.790000000000001,
+      "text": "一切都是由零開始。"
+    },
+    {
+      "start": 9.33,
+      "end": 12.73,
+      "text": "就只是螢幕上的人問一個簡單問題。"
+    },
+    {
+      "start": 13.08,
+      "end": 13.96,
+      "text": "你看見了什麼？"
+    }
+  ],
+  "summaryStyle": "minutes",
+  "quizCount": 5,
+  "summaryMarkdown": "## Overview\nThe session featured a reflective monologue on the nature of creativity and innovation. The speaker emphasized that all impactful stories, inventions, and ideas originate from a simple, initiating question.\n\n## Topics Discussed\n- The speaker opened by noting that every beloved story, every moving invention, and every coveted idea starts as nothing—a blank slate.\n- It was stated that such beginnings are often just a figure on a screen posing a straightforward question: “What did you see?”\n- The monologue highlighted the power of a single question to ignite the creative process that leads to meaningful creations.",
+  "quiz": null
+}

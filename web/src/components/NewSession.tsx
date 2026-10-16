@@ -59,7 +59,16 @@ export default function NewSession({ settings, onCreated }: Props) {
 
       <div
         className={`dropzone ${dragging ? 'drag' : ''} ${missing.file ? 'field-error' : ''}`}
+        role="button"
+        tabIndex={0}
+        aria-label="Upload an audio or video file"
         onClick={() => fileRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileRef.current?.click();
+          }
+        }}
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);

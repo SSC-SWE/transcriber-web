@@ -12,7 +12,7 @@ export type IconName =
   | 'gear' | 'plus' | 'waveform' | 'search' | 'x' | 'play' | 'pause'
   | 'copy' | 'download' | 'sparkles' | 'doc' | 'pdf' | 'txt' | 'list'
   | 'link' | 'edit' | 'external' | 'trash' | 'headphones' | 'arrow-down'
-  | 'check' | 'google';
+  | 'check' | 'google' | 'warning';
 
 const PATHS: Record<IconName, ReactNode> = {
   gear: (
@@ -122,6 +122,12 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M23.49 12.27c0-.72-.06-1.42-.18-2.09H12v4.05h6.45a5.52 5.52 0 0 1-2.39 3.63l3.71 2.88c2.17-2 3.42-4.95 3.42-8.47z" fill="#4285F4" stroke="none" />
       <path d="M5.4 14.11a7.06 7.06 0 0 1 0-4.22L1.55 6.9a11.95 11.95 0 0 0 0 10.2l3.85-2.99z" fill="#FBBC05" stroke="none" />
       <path d="M12 23.5c3.04 0 5.59-1 7.45-2.71l-3.71-2.88a7.4 7.4 0 0 1-3.74 1.05 7.05 7.05 0 0 1-6.6-4.85l-3.85 2.99A11.95 11.95 0 0 0 12 23.5z" fill="#34A853" stroke="none" />
+    </>
+  ),
+  warning: (
+    <>
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <path d="M12 9v4M12 17h.01" />
     </>
   ),
 };

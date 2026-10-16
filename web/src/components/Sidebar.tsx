@@ -94,12 +94,25 @@ function SidebarItem({
   onClick: () => void;
 }) {
   return (
-    <div className={`sidebar-item ${active ? 'active' : ''}`} onClick={onClick}>
+    <div
+      className={`sidebar-item ${active ? 'active' : ''}`}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+    >
       <span className="sidebar-item-icon">
         <Icon name={icon} size={13} />
       </span>
       <span className="sidebar-item-body">
-        <span className="sidebar-item-title">{title}</span>
+        <span className="sidebar-item-title" title={title}>
+          {title}
+        </span>
       </span>
     </div>
   );
@@ -136,19 +149,42 @@ function SessionRow({
   };
 
   return (
-    <div className={`sidebar-item ${active ? 'active' : ''} ${menuOpen ? 'menu-open' : ''}`} onClick={onOpen}>
+    <div
+      className={`sidebar-item ${active ? 'active' : ''} ${menuOpen ? 'menu-open' : ''}`}
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+    >
       <span className="sidebar-item-icon">
         <Icon name="waveform" size={13} />
       </span>
       <span className="sidebar-item-body">
-        <span className="sidebar-item-title">{displayName(session.filename)}</span>
+        <span className="sidebar-item-title" title={displayName(session.filename)}>
+          {displayName(session.filename)}
+        </span>
         <span className="sidebar-item-sub">{subtitle}</span>
       </span>
       <span
         className="sidebar-item-menu"
+        role="button"
+        tabIndex={0}
+        aria-label="Session actions"
         onClick={(e) => {
           e.stopPropagation();
           setMenuOpen((v) => !v);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            setMenuOpen((v) => !v);
+          }
         }}
       >
         <Icon name="list" size={13} />

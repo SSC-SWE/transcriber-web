@@ -52,7 +52,15 @@ function QuestionBlock({ question }: { question: QuizQuestion }) {
         const correct = i === question.answer;
         return (
           <div key={i} className={`quiz-option ${correct ? 'correct' : ''}`}>
-            <span className="quiz-marker">{correct ? '●' : '○'}</span>
+            <span className="quiz-marker">
+              <svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true">
+                {correct ? (
+                  <circle cx="5" cy="5" r="4.2" fill="currentColor" />
+                ) : (
+                  <circle cx="5" cy="5" r="4" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                )}
+              </svg>
+            </span>
             <span>{option}</span>
           </div>
         );

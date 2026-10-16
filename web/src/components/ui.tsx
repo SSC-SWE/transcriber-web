@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Icon } from '../icons';
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={className ? `card ${className}` : 'card'}>{children}</div>;
@@ -55,8 +56,8 @@ export function Segmented<T extends string>({
 
 export function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="error-banner">
-      <span>⚠</span>
+    <div className="error-banner" role="alert">
+      <Icon name="warning" size={16} />
       <span>{message}</span>
     </div>
   );
