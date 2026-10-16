@@ -87,7 +87,6 @@ systemd units; anything that runs a Node process works).
 | Model | Best for | Notes |
 |---|---|---|
 | `openai/whisper-large-v3-turbo` | Fast/cheap default | ~25 MB audio limit; auto-detects yue/zh/en; segment timestamps |
-| `google/chirp-3` | **Long recordings** (>25 MB) | Higher cost; strong Chinese |
 | `qwen/qwen3-asr-1.7b` | Cheap Chinese | Very low per-second cost |
 | `assemblyai/universal-3-6-pro` | Speaker labels | Speaker diarization + word timestamps |
 | `openai/gpt-4o-transcribe` | High accuracy | Token-priced |
@@ -132,5 +131,5 @@ model. Sign out from Settings.
 - **Jobs are in-memory** — a server restart drops in-flight transcriptions/summaries;
   finished sessions are persisted and unaffected.
 - The OpenRouter key stays server-side. Never put it in the frontend.
-- Whisper-class models reject audio over ~25 MB with a helpful message pointing at
-  `google/chirp-3`.
+- Whisper-class models reject audio over ~25 MB — split longer recordings into
+  smaller files and upload each one.

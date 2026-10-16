@@ -69,9 +69,8 @@ export async function transcribe(
   const model = config.openRouterSttModel;
   if (model.includes('whisper') && audio.length > WHISPER_MAX_BYTES) {
     throw new ApiError(
-      'This recording is too large for Whisper (25 MB audio limit). Set '
-      + 'OPENROUTER_STT_MODEL=google/chirp-3 in .env for long recordings, '
-      + 'or split the file.',
+      'This recording is too large for Whisper (25 MB audio limit). '
+      + 'Split it into smaller files and upload each one.',
     );
   }
 
