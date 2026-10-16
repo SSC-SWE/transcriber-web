@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import * as api from '../api';
 import { Icon } from '../icons';
 import type { Settings } from '../settings';
-import type { AudioLanguage, GoogleStatus, OutputLanguage, TranscriptLanguage } from '../types';
-import { AUDIO_LANGUAGES, OUTPUT_LANGUAGES, TRANSCRIPT_LANGUAGES } from '../types';
+import type { AudioLanguage, GoogleStatus } from '../types';
+import { AUDIO_LANGUAGES } from '../types';
 import { RowCard, SectionLabel, Segmented, SettingRow } from './ui';
 
 interface Props {
@@ -61,7 +61,7 @@ export default function SettingsView({ settings, update }: Props) {
       <RowCard>
         <SettingRow
           title="Session audio language"
-          sub="Default language spoken in new recordings — can still be changed per session when importing."
+          sub="Default language spoken in new recordings (auto-detect is fine for most)."
         >
           <select
             value={settings.audioLanguage}
@@ -74,40 +74,10 @@ export default function SettingsView({ settings, update }: Props) {
             ))}
           </select>
         </SettingRow>
-        <SettingRow
-          title="Transcript language"
-          sub="Default for new transcripts: original, optionally with a translated version shown beneath each line."
-        >
-          <select
-            value={settings.transcriptLanguage}
-            onChange={(e) => update({ transcriptLanguage: e.target.value as TranscriptLanguage })}
-          >
-            {TRANSCRIPT_LANGUAGES.map((lang) => (
-              <option key={lang.value} value={lang.value}>
-                {lang.label}
-              </option>
-            ))}
-          </select>
-        </SettingRow>
       </RowCard>
 
       <SectionLabel>AI</SectionLabel>
       <RowCard>
-        <SettingRow
-          title="Summary style"
-          sub={settings.summaryStyle === 'lesson'
-            ? 'Overview, key points, terms and follow-ups — tuned for classes.'
-            : 'Topics discussed, decisions and action items — tuned for meetings.'}
-        >
-          <Segmented
-            value={settings.summaryStyle}
-            options={[
-              { value: 'lesson' as const, label: 'Lesson summary' },
-              { value: 'minutes' as const, label: 'Meeting minutes' },
-            ]}
-            onChange={(value) => update({ summaryStyle: value })}
-          />
-        </SettingRow>
         <SettingRow title="Summary length" sub={LENGTH_BLURBS[settings.summaryLength]}>
           <Segmented
             value={settings.summaryLength}
@@ -118,31 +88,6 @@ export default function SettingsView({ settings, update }: Props) {
             ]}
             onChange={(value) => update({ summaryLength: value })}
           />
-        </SettingRow>
-        <SettingRow
-          title="AI language"
-          sub="Language for AI summaries and quizzes — can still be changed per session."
-        >
-          <select
-            value={settings.outputLanguage}
-            onChange={(e) => update({ outputLanguage: e.target.value as OutputLanguage })}
-          >
-            {OUTPUT_LANGUAGES.map((lang) => (
-              <option key={lang.value} value={lang.value}>
-                {lang.label}
-              </option>
-            ))}
-          </select>
-        </SettingRow>
-        <SettingRow title="Quiz length" sub="Number of questions per generated quiz.">
-          <select
-            value={settings.quizCount}
-            onChange={(e) => update({ quizCount: Number(e.target.value) })}
-          >
-            <option value={5}>5 questions</option>
-            <option value={10}>10 questions</option>
-            <option value={15}>15 questions</option>
-          </select>
         </SettingRow>
       </RowCard>
 

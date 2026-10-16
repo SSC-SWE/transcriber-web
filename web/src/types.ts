@@ -39,6 +39,8 @@ export interface Session {
   segments: TranscriptSegment[];
   transcriptLanguage: TranscriptLanguage;
   segmentsTranslated: TranscriptSegment[] | null;
+  summaryStyle: SummaryStyle;
+  quizCount: number;
   summaryMarkdown: string | null;
   quiz: Quiz | null;
 }

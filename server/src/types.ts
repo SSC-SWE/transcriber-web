@@ -58,6 +58,10 @@ export interface Session {
   transcriptLanguage: TranscriptLanguage;
   /** Translated copy of `segments` (same timestamps), when transcriptLanguage != 'original'. */
   segmentsTranslated: TranscriptSegment[] | null;
+  /** Summary style chosen for this session (lesson summary or meeting minutes). */
+  summaryStyle: SummaryStyle;
+  /** Number of questions for this session's quiz. */
+  quizCount: number;
   summaryMarkdown: string | null;
   quiz: Quiz | null;
 }

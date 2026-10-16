@@ -47,15 +47,21 @@ export async function getSession(id: string): Promise<Session> {
 
 export function createSession(
   file: File,
-  audioLanguage: AudioLanguage,
-  outputLanguage: OutputLanguage,
-  transcriptLanguage: TranscriptLanguage,
+  params: {
+    audioLanguage: AudioLanguage;
+    transcriptLanguage: TranscriptLanguage;
+    outputLanguage: OutputLanguage;
+    summaryStyle: SummaryStyle;
+    quizCount: number;
+  },
 ): Promise<{ session: Session; job: Job }> {
   const form = new FormData();
   form.append('file', file);
-  form.append('audioLanguage', audioLanguage);
-  form.append('outputLanguage', outputLanguage);
-  form.append('transcriptLanguage', transcriptLanguage);
+  form.append('audioLanguage', params.audioLanguage);
+  form.append('transcriptLanguage', params.transcriptLanguage);
+  form.append('outputLanguage', params.outputLanguage);
+  form.append('summaryStyle', params.summaryStyle);
+  form.append('quizCount', String(params.quizCount));
   return request('/api/sessions', { method: 'POST', body: form });
 }
 
@@ -76,25 +82,17 @@ export async function retranscribe(id: string): Promise<Job> {
   return data.job;
 }
 
-export async function summarize(
-  id: string,
-  style: SummaryStyle,
-  length: SummaryLength,
-): Promise<Job> {
+export async function summarize(id: string, length: SummaryLength): Promise<Job> {
   const data = await request<{ job: Job }>(`/api/sessions/${id}/summary`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ style, length }),
+    body: JSON.stringify({ length }),
   });
   return data.job;
 }
 
-export async function generateQuiz(id: string, count: number): Promise<Job> {
-  const data = await request<{ job: Job }>(`/api/sessions/${id}/quiz`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ count }),
-  });
+export async function generateQuiz(id: string): Promise<Job> {
+  const data = await request<{ job: Job }>(`/api/sessions/${id}/quiz`, { method: 'POST' });
   return data.job;
 }
 

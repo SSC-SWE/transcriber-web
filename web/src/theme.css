@@ -501,6 +501,17 @@ select:focus {
   margin-bottom: 16px;
 }
 
+select.field-error,
+.dropzone.field-error {
+  border-color: var(--danger) !important;
+}
+
+.field-error-text {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 /* ---------------------------------------------------------------------------
    Progress card
    --------------------------------------------------------------------------- */

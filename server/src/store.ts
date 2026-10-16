@@ -13,6 +13,7 @@ import type {
   OutputLanguage,
   Session,
   SessionSummary,
+  SummaryStyle,
   TranscriptLanguage,
   TranscriptSegment,
 } from './types';
@@ -72,6 +73,8 @@ export function loadAll(): void {
         ...parsed,
         transcriptLanguage: parsed.transcriptLanguage ?? 'original',
         segmentsTranslated: parsed.segmentsTranslated ?? null,
+        summaryStyle: parsed.summaryStyle ?? 'lesson',
+        quizCount: parsed.quizCount ?? 10,
       });
     } catch {
       // Skip corrupt files rather than crash on startup.
@@ -102,6 +105,8 @@ export function createSession(params: {
   audioLanguage: Session['audioLanguage'];
   outputLanguage: OutputLanguage;
   transcriptLanguage: TranscriptLanguage;
+  summaryStyle: SummaryStyle;
+  quizCount: number;
   audioFile: string;
 }): Session {
   const session: Session = {
@@ -114,6 +119,8 @@ export function createSession(params: {
     segments: [],
     transcriptLanguage: params.transcriptLanguage,
     segmentsTranslated: null,
+    summaryStyle: params.summaryStyle,
+    quizCount: params.quizCount,
     summaryMarkdown: null,
     quiz: null,
   };

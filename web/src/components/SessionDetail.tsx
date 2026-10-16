@@ -122,7 +122,7 @@ export default function SessionDetail({ id, initialJob, audioSrc, settings, goog
     setError(null);
     setOverlay({ kind: 'summary', phase: 'working' });
     try {
-      const job = await api.summarize(id, settings.summaryStyle, settings.summaryLength);
+      const job = await api.summarize(id, settings.summaryLength);
       const done = await pollJob(job.id);
       if (done.error) setError(done.error);
       else {
@@ -153,7 +153,7 @@ export default function SessionDetail({ id, initialJob, audioSrc, settings, goog
         }
       }
       setOverlay({ kind: 'quiz', phase: 'working' });
-      const job = await api.generateQuiz(id, settings.quizCount);
+      const job = await api.generateQuiz(id);
       const done = await pollJob(job.id);
       if (done.error) setError(done.error);
       else {

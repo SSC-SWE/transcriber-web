@@ -118,7 +118,7 @@ async function runTranscription(session: Session, job: Job): Promise<void> {
   }
 }
 
-async function runSummary(session: Session, job: Job, opts: { style: SummaryStyle; length: SummaryLength }): Promise<void> {
+async function runSummary(session: Session, job: Job, length: SummaryLength): Promise<void> {
   try {
     const transcript = transcriptText(session.segments);
     if (transcript.trim().length < 20) {
@@ -128,8 +128,8 @@ async function runSummary(session: Session, job: Job, opts: { style: SummaryStyl
     const summary = await openrouter.summarize(
       transcript,
       session.outputLanguage,
-      opts.length,
-      opts.style,
+      length,
+      session.summaryStyle,
     );
     session.summaryMarkdown = summary;
     saveSession(session);
@@ -139,14 +139,14 @@ async function runSummary(session: Session, job: Job, opts: { style: SummaryStyl
   }
 }
 
-async function runQuiz(session: Session, job: Job, count: number): Promise<void> {
+async function runQuiz(session: Session, job: Job): Promise<void> {
   try {
     const transcript = transcriptText(session.segments);
     if (transcript.trim().length < 20) {
       throw new Error('Transcript is empty or too short to quiz on.');
     }
     updateJob(job.id, { stage: 'Generating questions…', progress: null });
-    const questions = await openrouter.makeQuiz(transcript, session.outputLanguage, count);
+    const questions = await openrouter.makeQuiz(transcript, session.outputLanguage, session.quizCount);
 
     updateJob(job.id, { stage: 'Creating the Google Form…', progress: null });
     const title = `${session.filename.replace(/\.[^.]+$/, '')} — Quiz`;
@@ -206,12 +206,16 @@ app.post('/api/sessions', upload.single('file'), (req, res) => {
   const audioLanguage = (req.body.audioLanguage as Session['audioLanguage']) || 'auto';
   const outputLanguage = (req.body.outputLanguage as OutputLanguage) || 'en';
   const transcriptLanguage = (req.body.transcriptLanguage as TranscriptLanguage) || 'original';
+  const summaryStyle: SummaryStyle = req.body.summaryStyle === 'minutes' ? 'minutes' : 'lesson';
+  const quizCount = Math.max(1, Math.min(Number(req.body.quizCount) || 10, 20));
 
   const session = createSession({
     filename: originalName,
     audioLanguage,
     outputLanguage,
     transcriptLanguage,
+    summaryStyle,
+    quizCount,
     audioFile: '', // set below after the id exists
   });
   const finalName = `${session.id}.${ext}`;
@@ -272,11 +276,10 @@ app.post('/api/sessions/:id/summary', (req, res) => {
     res.status(404).json({ error: 'Session not found.' });
     return;
   }
-  const style: SummaryStyle = req.body.style === 'minutes' ? 'minutes' : 'lesson';
   const length: SummaryLength =
     req.body.length === 'brief' || req.body.length === 'in-depth' ? req.body.length : 'standard';
   const job = createJob(session.id, 'summary', 'Queued');
-  startJob(session, job, () => runSummary(session, job, { style, length }));
+  startJob(session, job, () => runSummary(session, job, length));
   res.status(202).json({ job: jobJson(job) });
 });
 
@@ -290,9 +293,8 @@ app.post('/api/sessions/:id/quiz', (req, res) => {
     res.status(400).json({ error: 'Google sign-in is not configured on this server.' });
     return;
   }
-  const count = Math.max(1, Math.min(Number(req.body.count) || 10, 20));
   const job = createJob(session.id, 'quiz', 'Queued');
-  startJob(session, job, () => runQuiz(session, job, count));
+  startJob(session, job, () => runQuiz(session, job));
   res.status(202).json({ job: jobJson(job) });
 });
 
