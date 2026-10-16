@@ -53,10 +53,27 @@ function clearToken(): void {
 // Sign-in (web redirect)
 // ---------------------------------------------------------------------------
 
-export function buildAuthUrl(state: string): string {
+/**
+ * Derive the OAuth redirect URI from the request's Host so the bounce-back
+ * lands on the same origin the user actually reached (localhost in dev, the
+ * tunnel or domain in production). Falls back to GOOGLE_REDIRECT_URI.
+ */
+export function redirectUriForRequest(
+  host: string | undefined,
+  forwardedProto: string | undefined,
+): string {
+  const h = (host || '').split(',')[0].trim();
+  if (!h) return config.googleRedirectUri;
+  const hostname = h.replace(/:\d+$/, '').replace(/^\[|\]$/g, '');
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+  const scheme = isLocal ? 'http' : forwardedProto === 'https' ? 'https' : 'http';
+  return `${scheme}://${h}/api/google/callback`;
+}
+
+export function buildAuthUrl(state: string, redirectUri: string): string {
   const params = new URLSearchParams({
     client_id: config.googleClientId,
-    redirect_uri: config.googleRedirectUri,
+    redirect_uri: redirectUri,
     response_type: 'code',
     scope: SCOPE,
     access_type: 'offline',
@@ -66,7 +83,7 @@ export function buildAuthUrl(state: string): string {
   return `${AUTH_URL}?${params.toString()}`;
 }
 
-export async function exchangeCode(code: string): Promise<Token> {
+export async function exchangeCode(code: string, redirectUri: string): Promise<Token> {
   const res = await fetch(TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -75,7 +92,7 @@ export async function exchangeCode(code: string): Promise<Token> {
       client_secret: config.googleClientSecret,
       code,
       grant_type: 'authorization_code',
-      redirect_uri: config.googleRedirectUri,
+      redirect_uri: redirectUri,
     }),
   });
   const json = (await res.json().catch(() => ({}))) as Record<string, any>;

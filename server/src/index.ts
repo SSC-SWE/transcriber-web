@@ -354,20 +354,21 @@ app.get('/api/sessions/:id/export/:kind', async (req, res) => {
 // Google sign-in
 // ---------------------------------------------------------------------------
 
-const oauthStates = new Map<string, number>();
+const oauthStates = new Map<string, { createdAt: number; redirectUri: string }>();
 
 app.get('/api/google/status', (_req, res) => {
   res.json(google.status());
 });
 
-app.get('/api/google/login', (_req, res) => {
+app.get('/api/google/login', (req, res) => {
   if (!config.googleConfigured) {
     res.status(400).json({ error: 'Google sign-in is not configured on this server.' });
     return;
   }
   const state = crypto.randomBytes(12).toString('hex');
-  oauthStates.set(state, Date.now());
-  res.redirect(google.buildAuthUrl(state));
+  const redirectUri = google.redirectUriForRequest(req.get('host'), req.get('x-forwarded-proto'));
+  oauthStates.set(state, { createdAt: Date.now(), redirectUri });
+  res.redirect(google.buildAuthUrl(state, redirectUri));
 });
 
 app.get('/api/google/callback', async (req, res) => {
@@ -379,7 +380,8 @@ app.get('/api/google/callback', async (req, res) => {
     respond('Google sign-in was declined.');
     return;
   }
-  if (!state || !oauthStates.has(state)) {
+  const entry = state ? oauthStates.get(state) : undefined;
+  if (!entry) {
     respond('Sign-in session expired — please try again.');
     return;
   }
@@ -389,7 +391,7 @@ app.get('/api/google/callback', async (req, res) => {
     return;
   }
   try {
-    await google.exchangeCode(code);
+    await google.exchangeCode(code, entry.redirectUri);
     const done = `<!doctype html><html><body style="font-family:sans-serif;background:#101010;color:#e5e5e5;padding:40px"><p>Google sign-in complete — you can close this window.</p><script>setTimeout(function(){window.close()},1200)</script></body></html>`;
     res.send(done);
   } catch (err: any) {
