@@ -35,10 +35,12 @@ function languageRule(lang: OutputLanguage): string {
 }
 
 // Whisper accepts ISO codes; large-v3 supports Cantonese as "yue".
-function sttLanguageHint(lang: AudioLanguage): string | undefined {
+function sttLanguageHint(lang: AudioLanguage, model: string): string | undefined {
   switch (lang) {
     case 'auto': return undefined;
-    case 'yue': return 'yue';
+    case 'yue':
+      // whisper-large-v3-turbo returns empty text for the 'yue' code — let it auto-detect.
+      return model.includes('turbo') ? undefined : 'yue';
     case 'zh': return 'zh';
     case 'en': return 'en';
   }
@@ -73,7 +75,7 @@ export async function transcribe(
     );
   }
 
-  const hint = sttLanguageHint(language);
+  const hint = sttLanguageHint(language, model);
   const body: Record<string, unknown> = {
     model,
     input_audio: { data: audio.toString('base64'), format },

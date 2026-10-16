@@ -61,7 +61,7 @@ export const config: Config = {
 
   openRouterApiKey: (process.env.OPENROUTER_API_KEY || '').trim(),
   openRouterModel: (process.env.OPENROUTER_MODEL || 'deepseek/deepseek-v4-pro').trim(),
-  openRouterSttModel: (process.env.OPENROUTER_STT_MODEL || 'openai/whisper-large-v3').trim(),
+  openRouterSttModel: (process.env.OPENROUTER_STT_MODEL || 'openai/whisper-large-v3-turbo').trim(),
 
   googleClientId: (process.env.GOOGLE_CLIENT_ID || '').trim(),
   googleClientSecret: (process.env.GOOGLE_CLIENT_SECRET || '').trim(),

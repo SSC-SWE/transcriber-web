@@ -1,0 +1,27 @@
+{
+  "id": "bb29192974ed",
+  "filename": "sample_cantonese_lesson.mp3",
+  "createdAt": "2026-10-16T04:12:19.874Z",
+  "audioLanguage": "yue",
+  "outputLanguage": "en",
+  "audioFile": "bb29192974ed.mp3",
+  "segments": [
+    {
+      "start": 0,
+      "end": 27,
+      "text": "各位同學早晨,今日我們上課會講二氧化碳循環。首先,植物透過光合作用吸收二氧化碳,放出氧氣。接著我們會做一個小實驗,請大家準備好石灰水和試管。記住,石灰水變成奶白色就是有二氧化碳。下課之前,記得完成練習補第三頁,和溫習今日的筆記。"
+    }
+  ],
+  "transcriptLanguage": "en",
+  "segmentsTranslated": [
+    {
+      "start": 0,
+      "end": 27,
+      "text": "Good morning, everyone. Today in class, we will talk about the carbon dioxide cycle. First, plants absorb carbon dioxide through photosynthesis and release oxygen. Next, we will do a small experiment. Please prepare limewater and test tubes. Remember, limewater turning milky white indicates the presence of carbon dioxide. Before class ends, remember to complete the supplementary exercises on page three and review today's notes."
+    }
+  ],
+  "summaryStyle": "lesson",
+  "quizCount": 10,
+  "summaryMarkdown": null,
+  "quiz": null
+}

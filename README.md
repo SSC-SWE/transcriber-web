@@ -16,7 +16,7 @@ Deployed at `ai.ssc.edu.hk/transcriber`.
 | Frontend | React + TypeScript (Vite), custom Hex CSS — no UI library |
 | Backend | Node + TypeScript (Express) — holds the OpenRouter + Google keys |
 | Storage | JSON files on disk (`data/`), one per session |
-| Speech-to-text | OpenRouter `/audio/transcriptions` (Whisper large-v3 by default) |
+| Speech-to-text | OpenRouter `/audio/transcriptions` (Whisper large-v3-turbo by default) |
 | AI summary / quiz | OpenRouter chat completions |
 | Google quiz | Google Forms API (OAuth) |
 | Exports | Word `.docx` (server), TXT (server), PDF (browser print dialog) |
@@ -72,8 +72,8 @@ systemd units; anything that runs a Node process works).
 | Setting | Default | Notes |
 |---|---|---|
 | `OPENROUTER_API_KEY` | — | **Required.** One key for STT + summary + quiz — [openrouter.ai/keys](https://openrouter.ai/keys) |
-| `OPENROUTER_MODEL` | `deepseek/deepseek-chat` | Chat model for summaries + quizzes |
-| `OPENROUTER_STT_MODEL` | `openai/whisper-large-v3` | Speech-to-text model — see below |
+| `OPENROUTER_MODEL` | `deepseek/deepseek-v4-pro` | Chat model for summaries + quizzes |
+| `OPENROUTER_STT_MODEL` | `openai/whisper-large-v3-turbo` | Speech-to-text model — see below |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | — | Needed for the quiz button |
 | `GOOGLE_REDIRECT_URI` | `http://localhost:8787/api/google/callback` | Must exactly match an Authorized redirect URI on the Google OAuth client |
 | `PORT` / `HOST` | `8787` / `127.0.0.1` | Server bind |
@@ -81,13 +81,12 @@ systemd units; anything that runs a Node process works).
 
 ## Speech-to-text models
 
-26 STT models are available on OpenRouter. Whisper large-v3 is the safe default
-(Cantonese `yue` + Mandarin + English, returns timestamped segments for the editor
-sync):
+26 STT models are available on OpenRouter. Whisper large-v3-turbo is the fast, cheap default
+(Cantonese/Mandarin/English, returns timestamped segments for the editor sync):
 
 | Model | Best for | Notes |
 |---|---|---|
-| `openai/whisper-large-v3` | General default | ~25 MB audio limit; yue/zh/en; segment timestamps |
+| `openai/whisper-large-v3-turbo` | Fast/cheap default | ~25 MB audio limit; auto-detects yue/zh/en; segment timestamps |
 | `google/chirp-3` | **Long recordings** (>25 MB) | Higher cost; strong Chinese |
 | `qwen/qwen3-asr-1.7b` | Cheap Chinese | Very low per-second cost |
 | `assemblyai/universal-3-6-pro` | Speaker labels | Speaker diarization + word timestamps |
