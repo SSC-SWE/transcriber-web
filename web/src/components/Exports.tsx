@@ -17,7 +17,7 @@ interface Props {
 /** Word / PDF / TXT / Copy — the export row shared by transcript and summary. */
 export default function ExportButtons({ sessionId, kind, copyText, pdfTitle, pdfBodyHtml }: Props) {
   return (
-    <>
+    <div className="export-row">
       <a
         className="btn btn-sm"
         href={exportUrl(sessionId, kind, 'docx')}
@@ -38,6 +38,6 @@ export default function ExportButtons({ sessionId, kind, copyText, pdfTitle, pdf
       <button className="btn btn-sm" onClick={() => copy(copyText)} title="Copy to clipboard">
         <Icon name="copy" size={14} /> Copy
       </button>
-    </>
+    </div>
   );
 }

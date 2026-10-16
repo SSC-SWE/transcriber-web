@@ -321,6 +321,14 @@ button {
   border-radius: 6px;
 }
 
+/* Export/copy button group (Word / PDF / TXT / Copy). */
+.export-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* ---------------------------------------------------------------------------
    Cards
    --------------------------------------------------------------------------- */
