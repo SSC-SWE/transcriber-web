@@ -17,7 +17,7 @@ const KEY = 'transcriber.settings';
 
 const DEFAULTS: Settings = {
   audioLanguage: 'auto',
-  outputLanguage: 'zh-HK',
+  outputLanguage: 'en',
   transcriptLanguage: 'original',
   summaryStyle: 'lesson',
   summaryLength: 'standard',

@@ -76,7 +76,7 @@ export default function SettingsView({ settings, update }: Props) {
         </SettingRow>
         <SettingRow
           title="Transcript language"
-          sub="Default language for new transcripts — original, or translated (both are kept)."
+          sub="Default for new transcripts: original, optionally with a translated version shown beneath each line."
         >
           <select
             value={settings.transcriptLanguage}

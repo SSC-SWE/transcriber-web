@@ -710,6 +710,17 @@ select:focus {
   min-width: 0;
 }
 
+.segment-original {
+  display: block;
+}
+
+.segment-translated {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+
 .segment-text.editable {
   outline: none;
   border-radius: 4px;

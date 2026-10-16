@@ -109,7 +109,7 @@ export default function NewSession({ settings, onCreated }: Props) {
         </SettingRow>
         <SettingRow
           title="Transcript language"
-          sub="Language the transcript is shown in — original, or translated (both are kept)"
+          sub="Original transcript, optionally with a translated version shown beneath each line"
         >
           <select
             value={transcriptLanguage}

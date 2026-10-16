@@ -11,7 +11,7 @@ import Editor from './Editor';
 import ExportButtons from './Exports';
 import ProgressCard from './ProgressCard';
 import { QuizView, SummaryView } from './SummaryQuiz';
-import { Card, ErrorBanner, Segmented } from './ui';
+import { Card, ErrorBanner } from './ui';
 
 type Tab = 'transcript' | 'summary' | 'quiz';
 
@@ -75,7 +75,6 @@ export default function SessionDetail({ id, initialJob, audioSrc, settings, goog
   const [transcribeJob, setTranscribeJob] = useState<Job | null>(initialJob);
   const [overlay, setOverlay] = useState<OverlayState | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [transcriptView, setTranscriptView] = useState<'original' | 'translated'>('original');
   const runningRef = useRef(false);
 
   const refreshSession = useCallback(async () => {
@@ -180,13 +179,11 @@ export default function SessionDetail({ id, initialJob, audioSrc, settings, goog
   }
 
   const duration = session.segments.length ? session.segments[session.segments.length - 1].end : 0;
-  const showTranslated = transcriptView === 'translated' && !!session.segmentsTranslated;
-  const displaySegments = showTranslated ? session.segmentsTranslated! : session.segments;
-  const transcriptPlain = displaySegments
+  const transcriptPlain = session.segments
     .map((s) => `[${formatTimestamp(s.start)}] ${s.text}`)
     .join('\n');
   const pdfTitle = displayName(session.filename);
-  const hasTranscript = displaySegments.length > 0;
+  const hasTranscript = session.segments.length > 0;
   const aiBusy = overlay !== null;
 
   return (
@@ -254,32 +251,20 @@ export default function SessionDetail({ id, initialJob, audioSrc, settings, goog
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 12, flexWrap: 'wrap' }}>
             <span className="card-sub">
               {hasTranscript
-                ? `${displaySegments.length} segments · ${formatTimestamp(duration)}`
+                ? `${session.segments.length} segments · ${formatTimestamp(duration)}`
                 : 'No transcript yet'}
             </span>
             {hasTranscript && (
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                {session.segmentsTranslated && (
-                  <Segmented
-                    value={transcriptView}
-                    options={[
-                      { value: 'original' as const, label: 'Original' },
-                      { value: 'translated' as const, label: 'Translated' },
-                    ]}
-                    onChange={(value) => setTranscriptView(value)}
-                  />
-                )}
-                <ExportButtons
-                  sessionId={id}
-                  kind="transcript"
-                  copyText={transcriptPlain}
-                  pdfTitle={pdfTitle}
-                  pdfBodyHtml={transcriptHtml(displaySegments.map((s) => ({ start: s.start, text: s.text })))}
-                />
-              </div>
+              <ExportButtons
+                sessionId={id}
+                kind="transcript"
+                copyText={transcriptPlain}
+                pdfTitle={pdfTitle}
+                pdfBodyHtml={transcriptHtml(session.segments.map((s) => ({ start: s.start, text: s.text })))}
+              />
             )}
           </div>
-          <Editor src={audioSrc} segments={displaySegments} />
+          <Editor src={audioSrc} segments={session.segments} translated={session.segmentsTranslated} />
         </>
       )}
 

@@ -99,10 +99,9 @@ async function runTranscription(session: Session, job: Job): Promise<void> {
       audioFormatFor(session.audioFile),
       session.audioLanguage,
     );
-    let segments = result.segments;
-    if (session.outputLanguage === 'zh-HK') {
-      segments = segments.map((s) => ({ ...s, text: s2t(s.text) }));
-    }
+    // Chinese transcripts are shown in traditional (HK convention). s2t is a
+    // no-op on non-Chinese and already-traditional text, so it is always safe.
+    const segments = result.segments.map((s) => ({ ...s, text: s2t(s.text) }));
     session.segments = segments;
     session.segmentsTranslated = null;
     if (session.transcriptLanguage !== 'original') {
@@ -205,7 +204,7 @@ app.post('/api/sessions', upload.single('file'), (req, res) => {
     return;
   }
   const audioLanguage = (req.body.audioLanguage as Session['audioLanguage']) || 'auto';
-  const outputLanguage = (req.body.outputLanguage as OutputLanguage) || 'zh-HK';
+  const outputLanguage = (req.body.outputLanguage as OutputLanguage) || 'en';
   const transcriptLanguage = (req.body.transcriptLanguage as TranscriptLanguage) || 'original';
 
   const session = createSession({

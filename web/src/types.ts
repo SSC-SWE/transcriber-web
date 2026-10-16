@@ -84,8 +84,8 @@ export const OUTPUT_LANGUAGES: { value: OutputLanguage; label: string }[] = [
 ];
 
 export const TRANSCRIPT_LANGUAGES: { value: TranscriptLanguage; label: string }[] = [
-  { value: 'original', label: 'Original (no translation)' },
-  { value: 'zh-HK', label: '繁體中文（香港）' },
-  { value: 'zh-CN', label: '简体中文' },
-  { value: 'en', label: 'English' },
+  { value: 'original', label: 'Original only' },
+  { value: 'zh-HK', label: 'Original + 繁體中文（香港）' },
+  { value: 'zh-CN', label: 'Original + 简体中文' },
+  { value: 'en', label: 'Original + English' },
 ];

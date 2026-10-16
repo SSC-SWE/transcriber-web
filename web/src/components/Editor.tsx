@@ -16,9 +16,11 @@ interface Props {
   /** Blob URL of the uploaded file (present only during the current tab session). */
   src?: string;
   segments: TranscriptSegment[];
+  /** Translated copy (same timestamps), shown beneath each original line. */
+  translated?: TranscriptSegment[] | null;
 }
 
-export default function Editor({ src, segments }: Props) {
+export default function Editor({ src, segments, translated }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -222,7 +224,10 @@ export default function Editor({ src, segments }: Props) {
         onClick={() => jumpTo(i)}
       >
         <span className="segment-time">{formatTimestamp(seg.start)}</span>
-        <span className="segment-text">{seg.text}</span>
+        <div className="segment-text">
+          <div className="segment-original">{seg.text}</div>
+          {translated?.[i] && <div className="segment-translated">{translated[i].text}</div>}
+        </div>
       </div>
     ))
   );
