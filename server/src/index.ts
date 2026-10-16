@@ -104,14 +104,27 @@ async function runTranscription(session: Session, job: Job): Promise<void> {
     const segments = result.segments.map((s) => ({ ...s, text: s2t(s.text) }));
     session.segments = segments;
     session.segmentsTranslated = null;
+    // Persist the transcript immediately so a later translation failure never
+    // loses it.
+    saveSession(session);
     if (session.transcriptLanguage !== 'original') {
       updateJob(job.id, { stage: 'Translating…', progress: null });
-      session.segmentsTranslated = await openrouter.translateSegments(
-        segments,
-        session.transcriptLanguage,
-      );
+      try {
+        session.segmentsTranslated = await openrouter.translateSegments(
+          segments,
+          session.transcriptLanguage,
+        );
+        saveSession(session);
+      } catch (err: any) {
+        updateJob(job.id, {
+          stage: 'Done',
+          progress: 100,
+          done: true,
+          error: `Transcribed, but translation failed: ${err?.message ?? err}`,
+        });
+        return;
+      }
     }
-    saveSession(session);
     updateJob(job.id, { stage: 'Done', progress: 100, done: true });
   } catch (err: any) {
     updateJob(job.id, { stage: 'Failed', error: err?.message ?? String(err), done: true });

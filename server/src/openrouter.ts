@@ -17,6 +17,8 @@ import type {
 const CHAT_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const STT_URL = 'https://openrouter.ai/api/v1/audio/transcriptions';
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export class ApiError extends Error {}
 
 function languageRule(lang: OutputLanguage): string {
@@ -79,13 +81,26 @@ export async function transcribe(
   };
   if (hint) body.language = hint;
 
-  const data = await postJson(STT_URL, body);
-  const text = (data.text as string) ?? '';
-  const segments = parseSegments(data.segments, text);
-  if (!text && segments.length === 0) {
-    throw new ApiError('The transcription service returned no text.');
+  // Whisper-class providers intermittently return a transient 400 under load —
+  // retry a couple of times with backoff (the call is idempotent).
+  let lastError: Error = new ApiError('Transcription failed.');
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const data = await postJson(STT_URL, body);
+      const text = (data.text as string) ?? '';
+      const segments = parseSegments(data.segments, text);
+      if (!text && segments.length === 0) {
+        throw new ApiError('The transcription service returned no text.');
+      }
+      return { text, segments };
+    } catch (err) {
+      lastError = err instanceof Error ? err : new ApiError(String(err));
+      // Auth/credit errors are not transient — surface immediately.
+      if (/401|402|API key|credits/i.test(lastError.message)) throw lastError;
+      if (attempt < 2) await sleep(1500 * (attempt + 1));
+    }
   }
-  return { text, segments };
+  throw lastError;
 }
 
 function parseSegments(raw: unknown, fullText: string): TranscriptSegment[] {
@@ -224,18 +239,29 @@ export async function translateSegments(
 }
 
 function parseTranslatedSegments(raw: string, original: TranscriptSegment[]): TranscriptSegment[] {
-  let payload = raw;
-  const start = raw.indexOf('[');
-  const end = raw.lastIndexOf(']');
-  if (start !== -1 && end > start) payload = raw.slice(start, end + 1);
+  let payload = raw.trim();
+  // Strip ```json / ``` fences if present.
+  const fence = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fence) payload = fence[1].trim();
+  // Otherwise take the outermost [...] span.
+  if (!payload.startsWith('[')) {
+    const start = payload.indexOf('[');
+    const end = payload.lastIndexOf(']');
+    if (start !== -1 && end > start) payload = payload.slice(start, end + 1);
+  }
   let items: unknown;
   try {
     items = JSON.parse(payload);
   } catch {
-    throw new ApiError('The model did not return valid translation JSON. Try again.');
+    throw new ApiError(`The model did not return valid translation JSON. Raw: ${raw.slice(0, 200)}`);
+  }
+  // Accept {"segments": [...]} wrappers some models emit.
+  if (!Array.isArray(items) && items && typeof items === 'object') {
+    const candidate = (items as Record<string, unknown>).segments;
+    if (Array.isArray(candidate)) items = candidate;
   }
   if (!Array.isArray(items)) {
-    throw new ApiError('The model did not return valid translation JSON. Try again.');
+    throw new ApiError(`The model did not return valid translation JSON. Raw: ${raw.slice(0, 200)}`);
   }
   const arr = items as Array<Record<string, unknown>>;
   let translated = 0;
@@ -246,7 +272,7 @@ function parseTranslatedSegments(raw: string, original: TranscriptSegment[]): Tr
     return { start: seg.start, end: seg.end, text: text || seg.text };
   });
   if (translated < Math.max(1, Math.floor(original.length / 2))) {
-    throw new ApiError('The model returned too few translated segments. Try again.');
+    throw new ApiError(`The model returned too few translated segments (${translated}/${original.length}). Raw: ${raw.slice(0, 200)}`);
   }
   return out;
 }

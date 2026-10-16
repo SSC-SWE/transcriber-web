@@ -1,0 +1,15 @@
+{
+  "id": "64ddc5a497fb",
+  "filename": "sample_cantonese_lesson.mp3",
+  "createdAt": "2026-10-16T03:46:18.211Z",
+  "audioLanguage": "yue",
+  "outputLanguage": "en",
+  "audioFile": "64ddc5a497fb.mp3",
+  "segments": [],
+  "transcriptLanguage": "original",
+  "segmentsTranslated": null,
+  "summaryStyle": "lesson",
+  "quizCount": 10,
+  "summaryMarkdown": null,
+  "quiz": null
+}
