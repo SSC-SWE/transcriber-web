@@ -141,40 +141,44 @@ export async function summarize(
 function summarizeLesson(transcript: string, rule: string, length: SummaryLength): Promise<string> {
   const intro = 'You are an experienced teaching assistant who summarises session transcripts '
     + `for teachers. Write everything in ${rule}\n`;
+  const grounding = 'Ground every point in the specific details from the audio — the exact terms, '
+    + 'figures, examples and worked problems that were discussed, in the speaker\'s own context. '
+    + 'Do not write generic teaching advice; only report what was actually said. '
+    + 'Use only facts from the transcript; never invent or generalise.';
   let body: string;
   switch (length) {
     case 'brief':
       body = 'Produce a concise Markdown summary with these sections:\n'
         + '## Overview — 1-2 sentences on what the session covered\n'
-        + '## Key Points — at most 5 short bullets\n'
+        + '## Key Points — at most 5 short bullets, each anchored to a concrete detail from the audio\n'
         + '## Key Terms — at most 3 essential terms, one line each (omit the section if none)\n'
         + '## Follow-ups — a single line listing homework/reminders, if any\n'
-        + 'Omit ## Examples. Keep the whole summary under 150 words. '
-        + 'Use only facts from the transcript; never invent content.';
+        + 'Omit ## Examples. Keep the whole summary under 150 words.\n'
+        + grounding;
       break;
     case 'in-depth':
       body = 'Produce a thorough, detailed Markdown summary with these sections:\n'
         + '## Overview — 3-5 sentences on what the session covered\n'
         + '## At a Glance — a Markdown table (| Topic | Key idea |) with 4-8 rows giving a visual overview of the session\n'
-        + '## Key Points — 6-10 bullets, each with a short explanation\n'
+        + '## Key Points — 6-10 bullets, each with a short explanation anchored to a concrete detail from the audio\n'
         + '## Key Terms — every important term/vocabulary item with a clear one-to-two-line definition\n'
-        + '## Examples — describe each example or worked problem and what it demonstrates\n'
+        + '## Examples — describe each example or worked problem and what it demonstrates, quoting the numbers and steps as discussed\n'
         + '## Follow-ups — all homework, reminders or next steps, including any deadlines mentioned\n'
         + 'Where the transcript shows a calculation or process, lay out its steps (a numbered list or table is fine). '
-        + 'Use markdown tables where they make the content clearer. '
-        + 'Use only facts from the transcript; never invent content.';
+        + 'Use markdown tables where they make the content clearer.\n'
+        + grounding;
       break;
     default:
       body = 'Produce a Markdown summary with exactly these sections:\n'
         + '## Overview — 2-3 sentences on what the session covered\n'
         + '## At a Glance — a Markdown table (| Topic | Key idea |) with 3-6 rows summarising the session at a glance\n'
-        + '## Key Points — the main teaching points, as bullets\n'
+        + '## Key Points — the main teaching points, as bullets, each anchored to a concrete detail from the audio\n'
         + '## Key Terms — important terms/vocabulary with a one-line definition each\n'
-        + '## Examples — examples or worked problems that came up, briefly\n'
+        + '## Examples — examples or worked problems that came up, with the specifics as discussed\n'
         + '## Follow-ups — homework, reminders or next steps, if any were mentioned '
         + '(omit the section if there were none)\n'
-        + 'Use markdown tables where they make the content clearer. '
-        + 'Use only facts from the transcript; never invent content.';
+        + 'Use markdown tables where they make the content clearer.\n'
+        + grounding;
   }
   return chat([{ role: 'system', content: intro + body }, { role: 'user', content: `Session transcript:\n\n${transcript}` }], 4000);
 }
@@ -182,36 +186,36 @@ function summarizeLesson(transcript: string, rule: string, length: SummaryLength
 function summarizeMinutes(transcript: string, rule: string, length: SummaryLength): Promise<string> {
   const intro = 'You are a professional secretary who writes minutes from session transcripts. '
     + `Write everything in ${rule}\n`;
+  const grounding = 'Record any numbers, budgets, schedules, owners and deadlines exactly as spoken. '
+    + 'Use only facts from the transcript; never invent content.';
   let body: string;
   switch (length) {
     case 'brief':
       body = 'Produce a concise Markdown meeting minute with these sections:\n'
         + '## Overview — 1-2 sentences on what the meeting was about and its outcome\n'
-        + '## Decisions — the key decisions made, as bullets (omit the section if none)\n'
+        + '## Decisions — the key decisions made and why, as bullets (omit the section if none)\n'
         + '## Action Items — task — owner — deadline, one line each (omit the section if none)\n'
-        + 'Keep the whole minute under 150 words. '
-        + 'Use only facts from the transcript; never invent content.';
+        + 'Keep the whole minute under 150 words, but capture every concrete detail, owner and deadline mentioned.\n'
+        + grounding;
       break;
     case 'in-depth':
       body = 'Produce a thorough, detailed Markdown meeting minute with these sections:\n'
         + '## Overview — 3-5 sentences on the meeting\'s purpose, scope and outcome\n'
-        + '## Topics Discussed — each topic with a short account of what was said\n'
+        + '## Topics Discussed — each topic with a detailed account of what was said, including all figures, dates and examples mentioned\n'
         + '## Decisions — each decision with its rationale, as bullets\n'
         + '## Action Items — a Markdown table (| Task | Owner | Deadline |) listing every action item, with each task, its owner and its deadline where stated\n'
         + '## Open Questions — items left unresolved or deferred (omit the section if none)\n'
-        + 'Where the transcript shows numbers, budgets or schedules, record them exactly. '
         + 'Name participants only if the transcript identifies them. '
-        + 'Use only facts from the transcript; never invent content.';
+        + grounding;
       break;
     default:
-      body = 'Produce a Markdown meeting minute with exactly these sections:\n'
+      body = 'Produce a thorough Markdown meeting minute with these sections:\n'
         + '## Overview — 2-3 sentences on the meeting\'s purpose and outcome\n'
-        + '## Topics Discussed — the main points raised, as bullets\n'
-        + '## Decisions — what was agreed, as bullets (omit the section if none)\n'
-        + '## Action Items — a Markdown table (| Task | Owner | Deadline |) of the action items mentioned '
-        + '(omit the section if none)\n'
+        + '## Topics Discussed — each topic with a short account of what was actually said, including figures, dates and examples mentioned\n'
+        + '## Decisions — what was agreed and the reasoning behind it, as bullets (omit the section if none)\n'
+        + '## Action Items — a Markdown table (| Task | Owner | Deadline |) of every action item mentioned, with owner and deadline where stated (omit the section if none)\n'
         + 'Name participants only if the transcript identifies them. '
-        + 'Use only facts from the transcript; never invent content.';
+        + grounding;
   }
   return chat([{ role: 'system', content: intro + body }, { role: 'user', content: `Session transcript:\n\n${transcript}` }], 4000);
 }

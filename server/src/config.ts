@@ -60,7 +60,7 @@ export const config: Config = {
   googleTokenFile: path.join(dataDir, 'google-token.json'),
 
   openRouterApiKey: (process.env.OPENROUTER_API_KEY || '').trim(),
-  openRouterModel: (process.env.OPENROUTER_MODEL || 'deepseek/deepseek-chat').trim(),
+  openRouterModel: (process.env.OPENROUTER_MODEL || 'deepseek/deepseek-v4-pro').trim(),
   openRouterSttModel: (process.env.OPENROUTER_STT_MODEL || 'openai/whisper-large-v3').trim(),
 
   googleClientId: (process.env.GOOGLE_CLIENT_ID || '').trim(),
