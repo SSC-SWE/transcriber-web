@@ -10,8 +10,11 @@ import type {
   TranscriptLanguage,
 } from './types';
 
+/** Server origin, overridable at build time (VITE_API_BASE) when the server is hosted apart from the site. */
+const API_BASE: string = import.meta.env.VITE_API_BASE ?? '';
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
+  const res = await fetch(`${API_BASE}${url}`, init);
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
     try {
@@ -102,10 +105,12 @@ export async function getJob(id: string): Promise<Job> {
 }
 
 export function exportUrl(id: string, kind: 'transcript' | 'summary', format: 'docx' | 'txt'): string {
-  return `/api/sessions/${id}/export/${kind}?format=${format}`;
+  return `${API_BASE}/api/sessions/${id}/export/${kind}?format=${format}`;
 }
 
 export const googleStatus = (): Promise<GoogleStatus> => request<GoogleStatus>('/api/google/status');
+
+export const googleLoginUrl = (): string => `${API_BASE}/api/google/login`;
 
 export const googleLogout = (): Promise<{ ok: boolean }> =>
   request('/api/google/logout', { method: 'POST' });

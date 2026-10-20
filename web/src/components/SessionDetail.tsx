@@ -44,7 +44,7 @@ function pollJob(jobId: string): Promise<Job> {
 
 function waitForGoogleSignIn(): Promise<boolean> {
   return new Promise((resolve) => {
-    const popup = window.open('/api/google/login', 'google-signin', 'width=520,height=680');
+    const popup = window.open(api.googleLoginUrl(), 'google-signin', 'width=520,height=680');
     if (!popup) {
       resolve(false);
       return;
