@@ -50,6 +50,34 @@ const app = express();
 app.use(express.json({ limit: '1mb' }));
 
 // ---------------------------------------------------------------------------
+// CORS — the API is called cross-origin from the GitHub Pages site. The
+// ngrok-skip header is required so ngrok's free-tier warning page never
+// intercepts XHR calls.
+// ---------------------------------------------------------------------------
+
+const ALLOWED_ORIGINS = new Set([
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://ssc-swe.github.io',
+]);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, ngrok-skip-browser-warning');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(origin && ALLOWED_ORIGINS.has(origin) ? 204 : 403);
+    return;
+  }
+  next();
+});
+
+// ---------------------------------------------------------------------------
 // Uploads (multer → temp name; renamed after the session id is known)
 // ---------------------------------------------------------------------------
 

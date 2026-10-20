@@ -14,7 +14,12 @@ import type {
 const API_BASE: string = import.meta.env.VITE_API_BASE ?? '';
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, init);
+  // ngrok's free tier intercepts browser-looking requests with a warning page
+  // unless this header is present.
+  const res = await fetch(`${API_BASE}${url}`, {
+    ...init,
+    headers: { 'ngrok-skip-browser-warning': '1', ...init?.headers },
+  });
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
     try {
@@ -106,6 +111,34 @@ export async function getJob(id: string): Promise<Job> {
 
 export function exportUrl(id: string, kind: 'transcript' | 'summary', format: 'docx' | 'txt'): string {
   return `${API_BASE}/api/sessions/${id}/export/${kind}?format=${format}`;
+}
+
+/** Download an export as a blob — a plain link navigation would hit ngrok's warning page. */
+export async function downloadExport(
+  id: string,
+  kind: 'transcript' | 'summary',
+  format: 'docx' | 'txt',
+): Promise<void> {
+  const res = await fetch(exportUrl(id, kind, format), {
+    headers: { 'ngrok-skip-browser-warning': '1' },
+  });
+  if (!res.ok) {
+    let message = `Download failed (${res.status})`;
+    try {
+      const body = await res.json();
+      if (body && typeof body.error === 'string') message = body.error;
+    } catch {
+      // non-JSON error body — keep the generic message
+    }
+    throw new Error(message);
+  }
+  const blob = await res.blob();
+  const match = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '');
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = match?.[1] ?? `export.${format}`;
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 export const googleStatus = (): Promise<GoogleStatus> => request<GoogleStatus>('/api/google/status');
